@@ -1,0 +1,116 @@
+<html>
+<head>
+<title>Hypno Remote Soundboard</title>
+<script>
+DEFAULT_VOICE = 'US English';
+
+speechSynthesis.onvoiceschanged = async () => {
+  var optgroup = document.querySelector('.voice_picker > optgroup');
+  optgroup.innerHTML = '';
+  for (voice of speechSynthesis.getVoices())
+  {
+    var opt = document.createElement('option');
+    opt.text = voice.name;
+    opt.value = voice.name;
+    optgroup.appendChild(opt);
+    if (voice.name.includes(DEFAULT_VOICE))
+    {
+      document.querySelector('.voice_picker').value = voice.name;
+    }
+  }
+}
+
+var get_voice = () =>
+{
+  if (window.s_voice)
+  {
+    return window.s_voice;
+  }
+
+  for (v of speechSynthesis.getVoices())
+  {
+    if (v.name == window.s_voice_name)
+    {
+      window.s_voice = v;
+      return v;
+    }
+  }
+};
+
+var say = (t) =>
+{
+  console.log('say()', t);
+  return new Promise((resolve, reject) => {
+    var u = new SpeechSynthesisUtterance(t);
+    u.voice = get_voice();
+    u.onend = () => resolve();
+    u.onerror = () => reject();
+    speechSynthesis.speak(u);
+  });
+};
+
+var call_api = (url) => {
+  return new Promise((resolve, reject) => {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.onload = function () {
+      if (this.status >= 200 && this.status < 300) {
+        resolve(xhr.response);
+      } else {
+        reject(xhr.statusText);
+      }
+    };
+    xhr.onerror = function () {
+      reject(xhr.statusText);
+    };
+    xhr.send();
+  });
+};
+
+var command_listener_loop = async () =>
+{
+  while(1)
+  {
+    console.log('WAITING FOR COMMAND');
+    var resp = await call_api('/get_command');
+    console.log('RECEIVE', resp);
+    try
+    {
+      say(JSON.parse(resp));
+    }
+    catch(e)
+    {
+    }
+  }
+}
+
+var do_setup = () =>
+{
+  window.s_voice_name = document.querySelector('.voice_picker').value;
+  document.querySelector('.config').style.display = 'None';
+  command_listener_loop();
+  document.querySelector('.container').innerHTML = '<h1>Running</h1>';
+}
+
+window.onload = () =>
+{
+  speechSynthesis.getVoices();
+}
+
+</script>
+</head>
+<style>
+.button
+{
+  margin: 10px;
+  padding: 10px;
+}
+</style>
+<body>
+<div class = 'config'>
+Select a voice: <select class = 'voice_picker'><optgroup></optgroup></select><br><br>
+<input type = 'button' value = 'Start' class = 'button' onclick='do_setup()' />
+</div>
+<div class = 'container'></div>
+</body>
+</html>
