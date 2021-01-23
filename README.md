@@ -1,4 +1,4 @@
-A hypno remote soundboard that can be used over the internet.
+A hypno remote soundboard that can be used long-distance over the internet.
 
 See https://longjumpingcamel51.github.io/hypno_remote.htm if you just need a soundboard locally.
 
