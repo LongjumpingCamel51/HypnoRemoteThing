@@ -6,7 +6,11 @@ try:
 except Exception as e:
   PORT = 4080
 
-COMMAND_QUEUE = queue.Queue()
+COMMAND_QUEUES = {}
+
+# TODO this will leak; implementing code to delete old, unused queues is left as an exercise for the reader
+def get_queue(partner_code):
+  return COMMAND_QUEUES.setdefault(partner_code, queue.Queue())
 
 with open('sub.htm', 'rb') as f:
   SUB_HTM = f.read()
@@ -27,11 +31,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
     try:
       if spath[1] == 'sub': return s.respond('text/html', SUB_HTM)
       if spath[1] == 'dom': return s.respond('text/html', DOM_HTM)
-      if spath[1] == 'get_command': return s.respond('application/json', json.dumps(COMMAND_QUEUE.get()).encode())
+      if spath[1] == 'get_command': return s.respond('application/json', json.dumps(get_queue(spath[2]).get()).encode())
 
       # XXX shouldn't use GET to do something that mutates data but I'm too lazy to do it the right way
       if spath[1] == 'put_command':
-        COMMAND_QUEUE.put(unquote(spath[2]).strip())
+        get_queue(spath[2]).put(unquote(spath[3]).strip())
         return s.respond('application/json', b'"OK"')
     except IndexError:
       pass

@@ -25,7 +25,7 @@ var call_api = (url) => {
 var on_click = async (evt) =>
 {
   var command = evt.target.value;
-  var url = '/put_command/' + encodeURIComponent(command);
+  var url = '/put_command/' + encodeURIComponent(window.s_partner_code) + '/' + encodeURIComponent(command);
   await call_api(url);
   console.log('SEND', command);
 }
@@ -43,12 +43,22 @@ var do_setup = () =>
     button.onclick = on_click;
     container.appendChild(button);
   }
-  
+
+  window.s_partner_code = document.querySelector('.partner_code').value;
+
   document.querySelector('.config').style.display = 'None';
+}
+
+var uuid = () =>
+{
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  );
 }
 
 window.onload = () =>
 {
+  document.querySelector('.partner_code').value = uuid();
   document.querySelector('.commands').value = DEFAULT_COMMANDS;
 }
 
@@ -63,6 +73,7 @@ window.onload = () =>
 </style>
 <body>
 <div class = 'config'>
+Partner Code: <input type='text' class='partner_code' /><br><br>
 Enter commands separated by commas: <input type='text' class='commands' /><br><br>
 <input type = 'button' value = 'Start' class = 'button' onclick='do_setup()' />
 </div>

@@ -72,7 +72,7 @@ var command_listener_loop = async () =>
   while(1)
   {
     console.log('WAITING FOR COMMAND');
-    var resp = await call_api('/get_command');
+    var resp = await call_api('/get_command/' + encodeURIComponent(window.s_partner_code));
     console.log('RECEIVE', resp);
     try
     {
@@ -86,6 +86,7 @@ var command_listener_loop = async () =>
 
 var do_setup = () =>
 {
+  window.s_partner_code = document.querySelector('.partner_code').value;
   window.s_voice_name = document.querySelector('.voice_picker').value;
   document.querySelector('.config').style.display = 'None';
   command_listener_loop();
@@ -108,6 +109,7 @@ window.onload = () =>
 </style>
 <body>
 <div class = 'config'>
+Partner Code: <input type='text' class='partner_code' /><br><br>
 Select a voice: <select class = 'voice_picker'><optgroup></optgroup></select><br><br>
 <input type = 'button' value = 'Start' class = 'button' onclick='do_setup()' />
 </div>
